@@ -5,6 +5,10 @@ import (
 	"io"
 	"net"
 	"os"
+	//"bufio"
+	"bytes"
+	//"ioutil"
+
 )
 
 func main() {
@@ -39,10 +43,13 @@ func handleRequest(conn net.Conn, rmt_host string, rmt_port string) {
 	if err != nil {
 		panic(err)
 	}
-//	buffer := make([]byte, 4024)
-	//conn.Read(buffer)
-	//s := string(buffer)
-	//fmt.Println(s)
+
+
+//	buffer := make([]byte, 60000)
+//	conn.Read(buffer)
+//	s := string(buffer)
+//	fmt.Println(s)
+
 	go copyIO(conn, proxy) //local to remote
 	go copyIO(proxy, conn)
 }
@@ -50,5 +57,11 @@ func handleRequest(conn net.Conn, rmt_host string, rmt_port string) {
 func copyIO(src, dest net.Conn) {
 	defer src.Close()
 	defer dest.Close()
-	io.Copy(src, dest)
+
+	var b bytes.Buffer
+    _ = io.Writer(&b)
+	io.Copy(src, io.TeeReader(dest, &b))
+
+
+	fmt.Println(b.String())
 }
